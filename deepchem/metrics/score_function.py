@@ -6,6 +6,7 @@ from sklearn.metrics import matthews_corrcoef  # noqa
 from sklearn.metrics import recall_score  # noqa
 from sklearn.metrics import cohen_kappa_score
 from sklearn.metrics import r2_score  # noqa
+from sklearn.metrics import explained_variance_score  # noqa
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import precision_score  # noqa

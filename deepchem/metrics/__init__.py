@@ -17,6 +17,7 @@ from deepchem.metrics.score_function import recall_score
 from deepchem.metrics.score_function import kappa_score
 from deepchem.metrics.score_function import cohen_kappa_score
 from deepchem.metrics.score_function import r2_score
+from deepchem.metrics.score_function import explained_variance_score
 from deepchem.metrics.score_function import mean_squared_error
 from deepchem.metrics.score_function import mean_absolute_error
 from deepchem.metrics.score_function import precision_score

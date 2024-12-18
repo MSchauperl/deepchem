@@ -43,6 +43,8 @@ try:
     from deepchem.models.torch_models import CGCNN, CGCNNModel
     from deepchem.models.torch_models import GAT, GATModel
     from deepchem.models.torch_models import GCN, GCNModel
+    from deepchem.models.torch_models import GCNRdkitModel
+
     from deepchem.models.torch_models import LCNN, LCNNModel
     from deepchem.models.torch_models import Pagtn, PagtnModel
     from deepchem.models.fcnet import MultitaskRegressor, MultitaskClassifier, MultitaskFitTransformRegressor
