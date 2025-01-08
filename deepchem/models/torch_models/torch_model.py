@@ -342,6 +342,17 @@ class TorchModel(Model):
             max_checkpoints_to_keep, checkpoint_interval, restore, variables,
             loss, callbacks, all_losses)
 
+
+    def compute_grad_norm(self):
+        """
+        Compute the L2 norm of the gradients for all parameters in the model.
+        """
+        total_norm = 0.0
+        for param in self.model.parameters():
+            if param.grad is not None:
+                total_norm += param.grad.norm(2).item() ** 2
+        self.grad_norm =  total_norm ** 0.5
+
     def fit_generator(self,
                       generator: Iterable[Tuple[Any, Any, Any]],
                       max_checkpoints_to_keep: int = 5,
@@ -474,6 +485,9 @@ class TorchModel(Model):
                     c(self, current_step)
             if self.tensorboard and should_log:
                 self._log_scalar_to_tensorboard('loss', batch_loss,
+                                                current_step)
+                self.compute_grad_norm()
+                self._log_scalar_to_tensorboard('grad_norm', self.grad_norm,
                                                 current_step)
             if (self.wandb_logger is not None) and should_log:
                 all_data = dict({'train/loss': batch_loss})
