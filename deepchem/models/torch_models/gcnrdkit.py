@@ -5,6 +5,7 @@ from dgllife.model import WeightedSumAndMax, GCN
 from deepchem.models.losses import Loss, L2Loss, SparseSoftmaxCrossEntropy
 from deepchem.models.torch_models.torch_model import TorchModel
 from typing import Optional
+import numpy as np
 
 
 import torch.nn as nn
@@ -207,23 +208,31 @@ class CombinedGCNMLPModel(nn.Module):
         )
 
         # RDKit descriptor feature extractor (MLP)
-        self.rdkit_encoder = nn.Sequential(
-            nn.Linear(rdkit_input_size, rdkit_hidden_feats[0]),
-            nn.ReLU(),
-            nn.Linear(rdkit_hidden_feats[0], rdkit_hidden_feats[1]),
-            nn.ReLU(),
-            nn.Linear(rdkit_hidden_feats[1], rdkit_hidden_feats[2])
-        )
+        rdkit_encoder_layers = []
+        for i in range(len(rdkit_hidden_feats)):
+            if i == 0:
+                rdkit_encoder_layers.append(nn.Linear(rdkit_input_size, rdkit_hidden_feats[i]))
+            else:
+                rdkit_encoder_layers.append(nn.Linear(rdkit_hidden_feats[i-1], rdkit_hidden_feats[i]))
+            rdkit_encoder_layers.append(nn.ReLU())  # Add ReLU after each linear layer
+        self.rdkit_encoder = nn.Sequential(*rdkit_encoder_layers)
 
         # Combined prediction network (MLP)
-        combined_input_size = rdkit_hidden_feats[2] + gcn_hidden_feats[-1] * 2
-        self.final_mlp = nn.Sequential(
-            nn.Linear(combined_input_size, combined_hidden_feats[0]),
-            nn.ReLU(),
-            nn.Linear(combined_hidden_feats[0], combined_hidden_feats[1]),
-            nn.ReLU(),
-            nn.Linear(combined_hidden_feats[1], n_tasks)
-        )
+        combined_input_size = rdkit_hidden_feats[-1] + gcn_hidden_feats[-1] * 2  # Input size depends on last hidden size
+        combined_mlp_layers = []
+
+        for i in range(len(combined_hidden_feats)):
+            if i == 0:
+                combined_mlp_layers.append(nn.Linear(combined_input_size, combined_hidden_feats[i]))
+            else:
+                combined_mlp_layers.append(nn.Linear(combined_hidden_feats[i-1], combined_hidden_feats[i]))
+            combined_mlp_layers.append(nn.ReLU())
+
+        combined_mlp_layers.append(nn.Linear(combined_hidden_feats[-1], self.gcn_out_size)) # Output layer
+
+        self.final_mlp = nn.Sequential(*combined_mlp_layers)
+
+     
 
     def forward(self, inputs):
         """
@@ -256,9 +265,18 @@ class CombinedGCNMLPModel(nn.Module):
 
         # Final predictions
         predictions = self.final_mlp(combined_features)
-
-        if self.mode == 'classification' and self.n_classes > 1:
-            predictions = F.softmax(predictions, dim=-1)
+        
+        if self.mode == 'classification':
+            if self.n_tasks == 1:
+                logits = predictions.view(-1, self.n_classes)
+                softmax_dim = 1
+            else:
+                logits = predictions.view(-1, self.n_tasks, self.n_classes)
+                softmax_dim = 2
+            proba = F.softmax(logits, dim=softmax_dim)
+            return proba, logits
+        else:
+            return predictions
 
         return predictions
 
@@ -337,7 +355,7 @@ class GCNRdkitModel(TorchModel):
 
         # Extract RDKit descriptors
 
-        rdkit_features = torch.tensor(numpy.array([rdkit[1] for rdkit in inputs[0]]), dtype=torch.float32, device=self.device)
+        rdkit_features = torch.tensor(np.array([rdkit[1] for rdkit in inputs[0]]), dtype=torch.float32, device=self.device)
 
         # Prepare labels and weights
         _, labels, weights = super(GCNRdkitModel, self)._prepare_batch(
