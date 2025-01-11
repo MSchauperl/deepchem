@@ -356,3 +356,5 @@ class GCNModel(TorchModel):
         _, labels, weights = super(GCNModel, self)._prepare_batch(
             ([], labels, weights))
         return inputs, labels, weights
+
+

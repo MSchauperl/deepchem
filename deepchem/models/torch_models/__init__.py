@@ -9,6 +9,8 @@ from deepchem.models.torch_models.attentivefp import AttentiveFP, AttentiveFPMod
 from deepchem.models.torch_models.cgcnn import CGCNN, CGCNNModel
 from deepchem.models.torch_models.gat import GAT, GATModel
 from deepchem.models.torch_models.gcn import GCN, GCNModel
+from deepchem.models.torch_models.gcnrdkit import  GCNRdkitModel
+
 from deepchem.models.torch_models.gan import GAN, GANModel, WGANModel, GradientPenaltyLayer
 from deepchem.models.torch_models.molgan import BasicMolGANModel
 from deepchem.models.torch_models.infograph import InfoGraphStar, InfoGraphStarModel, InfoGraphEncoder, GINEncoder, InfoGraph, InfoGraphModel, InfoGraphEncoder

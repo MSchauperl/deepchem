@@ -156,7 +156,10 @@ class Model(object):
             y_pred_batch = y_pred_batch[:n_samples]
             y_pred_batch = undo_transforms(y_pred_batch, transformers)
             y_preds.append(y_pred_batch)
-        y_pred = np.concatenate(y_preds)
+        if np.shape(y_preds[0])[2] > 1:
+            y_pred = np.concatenate(y_preds, axis = 1)
+        else:
+            y_pred = np.concatenate(y_preds)
         return y_pred
 
     def evaluate(self,
