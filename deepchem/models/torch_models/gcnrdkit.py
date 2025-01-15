@@ -6,6 +6,7 @@ from deepchem.models.losses import Loss, L2Loss, SparseSoftmaxCrossEntropy
 from deepchem.models.torch_models.torch_model import TorchModel
 from typing import Optional
 import numpy as np
+from collections.abc import Sequence as SequenceCollection
 
 
 import torch.nn as nn
@@ -139,7 +140,9 @@ class CombinedGCNMLPModel(nn.Module):
                  rdkit_input_size,
                  rdkit_hidden_feats,
                  combined_hidden_feats,
-                 n_tasks=1,
+                 dropouts_gcn: float = 0.0,
+                 dropouts_combined: float = 0.0,
+                 dropouts_rdkit: float = 0.0,n_tasks=1,
                  activation=F.relu,
                  mode='regression',
                  n_classes=2,
@@ -201,7 +204,7 @@ class CombinedGCNMLPModel(nn.Module):
             activation=activation,
             residual=True,
             batchnorm=True,
-            dropout=0.1,
+            dropout=dropouts_gcn,
             mode=mode,
             n_tasks=n_tasks,
             n_classes=n_classes
@@ -215,6 +218,7 @@ class CombinedGCNMLPModel(nn.Module):
             else:
                 rdkit_encoder_layers.append(nn.Linear(rdkit_hidden_feats[i-1], rdkit_hidden_feats[i]))
             rdkit_encoder_layers.append(nn.ReLU())  # Add ReLU after each linear layer
+            rdkit_encoder_layers.append(nn.Dropout(p=dropouts_rdkit[i]))
         self.rdkit_encoder = nn.Sequential(*rdkit_encoder_layers)
 
         # Combined prediction network (MLP)
@@ -227,6 +231,8 @@ class CombinedGCNMLPModel(nn.Module):
             else:
                 combined_mlp_layers.append(nn.Linear(combined_hidden_feats[i-1], combined_hidden_feats[i]))
             combined_mlp_layers.append(nn.ReLU())
+            combined_mlp_layers.append(nn.Dropout(p=dropouts_combined[i]))
+
 
         combined_mlp_layers.append(nn.Linear(combined_hidden_feats[-1], self.gcn_out_size)) # Output layer
 
@@ -296,6 +302,9 @@ class GCNRdkitModel(TorchModel):
                  number_atom_features: int = 30,
                  n_classes: int = 2,
                  self_loop: bool = True,
+                 dropouts_gcn: float = 0.0,
+                 dropouts_combined: float = 0.0,
+                 dropouts_rdkit: float = 0.0,
                  **kwargs):
         """
         Parameters
@@ -307,12 +316,27 @@ class GCNRdkitModel(TorchModel):
         if activation is None:
             activation = F.relu
 
+        n_gcn_layers = len(graph_conv_layers)
+        n_rdkit_layers = len(rdkit_hidden_feats)
+        n_combined_layers = len(combined_hidden_feats)
+
+
+        if not isinstance(dropouts_rdkit, SequenceCollection):
+            dropouts_rdkit = [dropouts_rdkit] * n_rdkit_layers
+        if not isinstance(dropouts_combined, SequenceCollection):
+            dropouts_combined = [dropouts_combined] * n_combined_layers
+
+
+
         # Initialize the base model
         model = CombinedGCNMLPModel(in_feats=number_atom_features,
             gcn_hidden_feats=graph_conv_layers,
             rdkit_input_size=rdkit_input_size,
             rdkit_hidden_feats=rdkit_hidden_feats,
             combined_hidden_feats=combined_hidden_feats,
+            dropouts_rdkit=dropouts_rdkit,  # Pass it here
+            dropouts_combined=dropouts_combined, # Pass it here
+            dropouts_gcn =dropouts_gcn,
             n_tasks=n_tasks,
             activation=activation,
             mode=mode,

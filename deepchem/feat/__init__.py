@@ -31,7 +31,7 @@ from deepchem.feat.molecule_featurizers import CoulombMatrixEig
 from deepchem.feat.molecule_featurizers import MACCSKeysFingerprint
 from deepchem.feat.molecule_featurizers import MordredDescriptors
 from deepchem.feat.molecule_featurizers import Mol2VecFingerprint
-from deepchem.feat.molecule_featurizers import MolGraphConvFeaturizer
+from deepchem.feat.molecule_featurizers import MolGraphConvFeaturizer, AttentiveFeaturizer
 from deepchem.feat.molecule_featurizers import MolGraphConvRdkitFeaturizer
 from deepchem.feat.molecule_featurizers import PagtnMolGraphFeaturizer
 from deepchem.feat.molecule_featurizers import MolGanFeaturizer

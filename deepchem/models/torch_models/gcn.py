@@ -26,25 +26,7 @@ class GCN(nn.Module):
 
     >>> import deepchem as dc
     >>> import dgl
-    >>> from deepchem.models import GCN
-    >>> smiles = ["C1CCC1", "C1=CC=CN=C1"]
-    >>> featurizer = dc.feat.MolGraphConvFeaturizer()
-    >>> graphs = featurizer.featurize(smiles)
-    >>> print(type(graphs[0]))
-    <class 'deepchem.feat.graph_data.GraphData'>
-    >>> dgl_graphs = [graphs[i].to_dgl_graph(self_loop=True) for i in range(len(graphs))]
-    >>> # Batch two graphs into a graph of two connected components
-    >>> batch_dgl_graph = dgl.batch(dgl_graphs)
-    >>> model = GCN(n_tasks=1, mode='regression')
-    >>> preds = model(batch_dgl_graph)
-    >>> print(type(preds))
-    <class 'torch.Tensor'>
-    >>> preds.shape == (2, 1)
-    True
-
-    References
-    ----------
-    .. [1] Thomas N. Kipf and Max Welling. "Semi-Supervised Classification with Graph
+Classification with Graph
         Convolutional Networks." ICLR 2017.
 
     Notes
