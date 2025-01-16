@@ -13,6 +13,7 @@ from deepchem.data import Dataset
 from deepchem.trans import Transformer
 from deepchem.utils.data_utils import load_from_disk, save_to_disk
 from deepchem.utils.typing import OneOrMany
+from deepchem.trans import Transformer, undo_transforms
 
 logger = logging.getLogger(__name__)
 
@@ -129,19 +130,41 @@ class SklearnModel(Model):
             return self.model.predict(X)
 
     def predict(self,
-                X: Dataset,
+                dataset: Dataset,
                 transformers: List[Transformer] = []) -> OneOrMany[np.ndarray]:
-        """Makes predictions on dataset.
+        """
+        Uses self to make predictions on provided Dataset object.
 
         Parameters
         ----------
         dataset: Dataset
-            Dataset to make prediction on.
+            Dataset to make prediction on
         transformers: List[Transformer]
             Transformers that the input data has been transformed by. The output
             is passed through these transformers to undo the transformations.
+
+        Returns
+        -------
+        np.ndarray
+            A numpy array of predictions the model produces.
         """
-        return super(SklearnModel, self).predict(X, transformers)
+        y_preds = []
+        for (X_batch, _, _,
+             ids_batch) in dataset.iterbatches(deterministic=True):
+            n_samples = len(X_batch)
+            y_pred_batch = self.predict_on_batch(X_batch)
+            # Discard any padded predictions
+            y_pred_batch = y_pred_batch[:n_samples]
+            y_pred_batch = undo_transforms(y_pred_batch, transformers)
+            y_preds.append(y_pred_batch)
+        if len(np.shape(y_preds[0])) == 1:
+            y_pred = [np.concatenate(y_preds)]
+        elif np.shape(y_preds[0])[2] > 1:
+            y_pred = np.concatenate(y_preds, axis = 1)
+        else:
+            y_pred = np.concatenate(y_preds)
+        return y_pred
+
 
     def save(self):
         """Saves scikit-learn model to disk using joblib."""
