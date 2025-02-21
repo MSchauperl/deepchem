@@ -526,7 +526,7 @@ class Metric(object):
             elif self.metric.__name__ in [
                     "pearson_r2_score", "r2_score","explained_variance_score", "mean_squared_error",
                     "mean_absolute_error", "rms_score", "mae_score", "pearsonr",
-                    "concordance_index"
+                    "concordance_index","kl_divergence"
             ]:
                 mode = "regression"
             else:

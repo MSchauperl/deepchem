@@ -40,6 +40,29 @@ def pearsonr(y: np.ndarray, y_pred: np.ndarray) -> float:
     """
     return scipy.stats.pearsonr(y, y_pred)[0]
 
+def kl_divergence(p: np.ndarray, q: np.ndarray) -> float:
+    """Computes the mean Kullback-Leibler (KL) divergence between two distributions.
+
+    Parameters
+    ----------
+    p: np.ndarray
+        True probability distributions, shape (batch_size, num_classes).
+    q: np.ndarray
+        Predicted probability distributions, shape (batch_size, num_classes).
+
+    Returns
+    -------
+    float
+        The mean KL divergence across all examples in the batch.
+    """
+    # Add a small epsilon to avoid division by zero or log of zero
+
+
+    # Compute KL divergence for each sample
+    kl_divs =p * np.log((p  + 1e-8 )/( q  + 1e-8))
+
+    # Return the mean KL divergence
+    return kl_divs
 
 def pearson_r2_score(y: np.ndarray, y_pred: np.ndarray) -> float:
     """Computes Pearson R^2 (square of Pearson correlation).

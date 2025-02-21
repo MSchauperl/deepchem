@@ -309,7 +309,6 @@ class Evaluator(object):
 
         multitask_scores = {}
         all_task_scores = {}
-
         # Compute multitask metrics
         for metric in metrics:
             results = metric.compute_metric(

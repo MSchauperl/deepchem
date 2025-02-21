@@ -43,6 +43,8 @@ try:
     from deepchem.models.torch_models import CGCNN, CGCNNModel
     from deepchem.models.torch_models import GAT, GATModel
     from deepchem.models.torch_models import GCN, GCNModel
+    from deepchem.models.torch_models import GCNAngle, GCNModelAngle
+
     from deepchem.models.torch_models import GCNRdkitModel
 
     from deepchem.models.torch_models import LCNN, LCNNModel

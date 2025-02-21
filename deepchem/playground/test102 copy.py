@@ -1,21 +1,23 @@
-import torch
-import dgl
-import numpy as np
-from torch.utils.data import Dataset, DataLoader
+from deepchem.models import GCNModelAngle
 import deepchem as dc
-import os
+import numpy as np
 
-os.chdir('/mnt/c/Users/schau/Documents/PerpetualMedicine/DeepChemModels')
+test_dataset = dc.data.DiskDataset(data_dir = '/mnt/c/Users/schau/Documents/PerpetualMedicine/RamachandranResults/ram_data/random_split_1/test_dataset_molgraphconvfeaturizer')
 
-dataset = dc.data.DiskDataset( 'dc_datasets/allperm_dataset_gcn/')
-splitter = dc.splits.RandomSplitter()
-# Splitting dataset into train and test datasets
-train_dataset, test_dataset = splitter.train_test_split(dataset)
-# Define the pipeline
-
-dc_model = dc.models.GCNModel(
-mode='regression', n_tasks=1,graph_conv_layers = [64,64],
-             batch_size=128, learning_rate=0.0001,
+# 3. Define Model
+model = GCNModelAngle(
+    n_tasks=test_dataset.y.shape[1],  # Number of bins
+    mode='regression', 
+    graph_conv_layers =[64,64,128],
+    predictor_hidden_feats = 256,
+    predictor_dropout = 0.2
+    # Change to 'classification' for probabilities
 )
+avg_kld = dc.metrics.Metric(dc.metrics.kl_divergence, np.sum)
 
-dc_model.fit(train_dataset, nb_epoch = 3,)
+# 4. Train Model
+model.fit(test_dataset, nb_epoch=1)
+model.evaluate(test_dataset, metrics = [avg_kld],)
+# # 5. Evaluate Model
+predicted = model.predict(test_dataset)
+print("Predicted angle distributions:", predicted)

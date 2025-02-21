@@ -15,6 +15,8 @@ from deepchem.metrics.metric import from_one_hot
 from deepchem.metrics.score_function import matthews_corrcoef
 from deepchem.metrics.score_function import recall_score
 from deepchem.metrics.score_function import kappa_score
+from deepchem.metrics.score_function import kl_divergence
+
 from deepchem.metrics.score_function import cohen_kappa_score
 from deepchem.metrics.score_function import r2_score
 from deepchem.metrics.score_function import explained_variance_score

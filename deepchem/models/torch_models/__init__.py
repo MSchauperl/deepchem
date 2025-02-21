@@ -9,6 +9,8 @@ from deepchem.models.torch_models.attentivefp import AttentiveFP, AttentiveFPMod
 from deepchem.models.torch_models.cgcnn import CGCNN, CGCNNModel
 from deepchem.models.torch_models.gat import GAT, GATModel
 from deepchem.models.torch_models.gcn import GCN, GCNModel
+from deepchem.models.torch_models.gcn_angle import GCNAngle, GCNModelAngle
+
 from deepchem.models.torch_models.gcnrdkit import  GCNRdkitModel
 
 from deepchem.models.torch_models.gan import GAN, GANModel, WGANModel, GradientPenaltyLayer

@@ -94,6 +94,90 @@ class L2Loss(Loss):
         return loss
 
 
+class SmoothKLLoss(Loss):
+    """KL Divergence Loss with Smoothness Loss between the true and predicted probability distributions."""
+
+    def _compute_tf_loss(self, output, labels):
+        import tensorflow as tf
+        # Ensure shapes and types are consistent
+        output, labels = _make_tf_shapes_consistent(output, labels)
+        output, labels = _ensure_float(output, labels)
+
+        # Normalize outputs to form valid probability distributions
+        output = tf.nn.softplus(output)
+        output = output / tf.reduce_sum(output, axis=-1, keepdims=True)
+
+        # Compute KL divergence
+        kl_loss = tf.reduce_sum(labels * tf.math.log((labels + 1e-8) / (output + 1e-8)), axis=-1)
+
+        # Compute smoothness loss
+        smooth_loss = tf.reduce_mean(tf.abs(output[:, 1:] - output[:, :-1]), axis=-1)
+
+        # Combine losses
+        total_loss = kl_loss + 0.1 * smooth_loss  # Adjust the weight of smooth loss as needed
+        return total_loss
+
+    def _create_pytorch_loss(self):
+        import torch
+
+        def loss(output, labels):
+            # Ensure shapes are consistent
+            output, labels = _make_pytorch_shapes_consistent(output, labels)
+
+            # Normalize outputs to form valid probability distributions
+            output = torch.nn.functional.softplus(output)
+            output = output / output.sum(dim=-1, keepdim=True)
+
+            # Compute KL divergence
+            kl_loss = labels * torch.log((labels + 1e-8) / (output + 1e-8))
+            # Compute smoothness loss
+            # need to fix the dimension htere
+            smooth_loss = torch.abs(output[:, 1:] - output[:, :-1])
+            # Add a column of zeros
+            batch_size = smooth_loss.shape[0]
+            zeros = torch.zeros(batch_size, 1,  device=smooth_loss.device)  # Create a tensor of zeros with shape [batch_size, 1]
+            smooth_loss = torch.cat((smooth_loss, zeros), dim=1)
+            # Combine losses
+            total_loss = kl_loss + 0.1 * smooth_loss  # Adjust the weight of smooth loss as needed
+            return total_loss
+
+        return loss
+
+
+class KLLoss(Loss):
+    """KL Divergence Loss between the true and predicted probability distributions."""
+
+    def _compute_tf_loss(self, output, labels):
+        import tensorflow as tf
+        # Ensure shapes and types are consistent
+        output, labels = _make_tf_shapes_consistent(output, labels)
+        output, labels = _ensure_float(output, labels)
+
+        # Normalize outputs to form valid probability distributions
+        output = tf.nn.softplus(output)
+        output = output / tf.reduce_sum(output, axis=-1, keepdims=True)
+
+        # Compute KL divergence
+        kl_loss = tf.reduce_sum(labels * tf.math.log((labels + 1e-8) / (output + 1e-8)), axis=-1)
+        return kl_loss
+
+    def _create_pytorch_loss(self):
+        import torch
+
+        def loss(output, labels):
+            # Ensure shapes are consistent
+            output, labels = _make_pytorch_shapes_consistent(output, labels)
+
+            # Normalize outputs to form valid probability distributions
+            output = torch.nn.functional.softplus(output)
+            output = output / output.sum(dim=-1, keepdim=True)
+
+            # Compute KL divergence
+            kl_loss = labels * torch.log((labels + 1e-8) / (output + 1e-8))
+            return kl_loss
+
+        return loss
+
 class HingeLoss(Loss):
     """The hinge loss function.
 
