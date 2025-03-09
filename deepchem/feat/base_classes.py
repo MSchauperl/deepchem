@@ -325,6 +325,77 @@ molecule.
             return np.asarray(features, dtype=object)
 
 
+class ThreeMolecularFeaturizer(Featurizer):
+    def __init__(self, use_original_atoms_order=False):
+        self.use_original_atoms_order = use_original_atoms_order
+
+    def featurize(self, datapoints, log_every_n=1000, **kwargs) -> np.ndarray:
+        """Calculate features for molecules, now handling semicolon-separated SMILES strings."""
+        try:
+            from rdkit import Chem
+            from rdkit.Chem import rdmolfiles, rdmolops
+            from rdkit.Chem.rdchem import Mol
+        except ModuleNotFoundError:
+            raise ImportError("This class requires RDKit to be installed.")
+
+        if 'molecules' in kwargs:
+            datapoints = kwargs.get("molecules")
+            raise DeprecationWarning(
+                'Molecules is being phased out as a parameter, please pass "datapoints" instead.'
+            )
+
+        # Special case handling of single input
+        if isinstance(datapoints, str) or isinstance(datapoints, Mol):
+            datapoints = [datapoints]
+        else:
+            datapoints = list(datapoints)
+
+        features = []
+        for i, mol in enumerate(datapoints):
+            if i % log_every_n == 0:
+                logger.info("Featurizing datapoint %i" % i)
+
+            try:
+                mols = []  # List to hold parsed molecules
+
+                if isinstance(mol, str):
+                    if ";" in mol:  # Check if it's a semicolon-separated SMILES
+                        smiles_list = mol.split(";")  # Split into individual SMILES
+                        if len(smiles_list) != 3:
+                            raise ValueError(f"Expected 3 SMILES per entry, got {len(smiles_list)}: {mol}")
+
+                        for smiles in smiles_list:
+                            mol_obj = Chem.MolFromSmiles(smiles)
+                            if mol_obj is None:
+                                raise ValueError(f"Invalid SMILES: {smiles}")
+
+                            new_order = rdmolfiles.CanonicalRankAtoms(mol_obj)
+                            mol_obj = rdmolops.RenumberAtoms(mol_obj, new_order)
+
+                            mols.append(mol_obj)
+
+                    else:  # Treat as a single standard SMILES
+                        raise ValueError(f"Expected 3 SMILES per entry, seperated by a ;. The string does not have a semicolon.")
+
+
+                kwargs_per_datapoint = {key: kwargs[key][i] for key in kwargs.keys()}
+                
+                # Apply featurization on all three molecules and concatenate features
+                featurized_mols = [self._featurize(m, **kwargs_per_datapoint) for m in mols]
+                features.append(np.concatenate(featurized_mols, axis=None))  # Flatten into a single array
+
+            except Exception as e:
+                logger.warning(f"Failed to featurize datapoint {i}, {mol}. Appending empty array.")
+                logger.warning("Exception message: {}".format(e))
+                features.append(np.array([]))
+
+        try:
+            return np.asarray(features)
+        except ValueError as e:
+            logger.warning("Exception message: {}".format(e))
+            return np.asarray(features, dtype=object)
+
+
 class MaterialStructureFeaturizer(Featurizer):
     """
     Abstract class for calculating a set of features for an

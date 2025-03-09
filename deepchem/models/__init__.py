@@ -44,6 +44,7 @@ try:
     from deepchem.models.torch_models import GAT, GATModel
     from deepchem.models.torch_models import GCN, GCNModel
     from deepchem.models.torch_models import GCNAngle, GCNModelAngle
+    from deepchem.models.torch_models import ProbabilityRegressor
 
     from deepchem.models.torch_models import GCNRdkitModel
 

@@ -144,6 +144,87 @@ class SmoothKLLoss(Loss):
         return loss
 
 
+class SmoothKLLoss2D(Loss):
+    """KL Divergence Loss with Smoothness Loss for 2D probability distributions."""
+    def _create_pytorch_loss(self):
+        import torch
+
+        def loss(output, labels):
+            # Normalize outputs to form valid probability distributions
+            output = torch.nn.functional.softplus(output)  # Ensure non-negative values
+            output = output / output.sum(dim=[1, 2], keepdim=True)  # Normalize across 2D bins
+
+            # Reshape labels
+            labels = labels.view(-1, 36, 36)
+
+            # Compute KL divergence over 2D grid
+            kl_loss = torch.sum(labels * torch.log((labels + 1e-8) / (output + 1e-8)), dim=[1, 2])
+            
+            # Compute smoothness loss (difference between adjacent bins)
+            diff_x = torch.abs(output[:, 1:, :] - output[:, :-1, :])  # Difference along x-axis
+            diff_y = torch.abs(output[:, :, 1:] - output[:, :, :-1])  # Difference along y-axis
+            smooth_loss = torch.mean(diff_x) + torch.mean(diff_y)
+
+            # Combine KL divergence with smoothness regularization
+            total_loss = kl_loss.mean() + 0.1 * smooth_loss
+
+            # smooth loss as needed
+            return total_loss
+        
+        return loss
+
+
+
+class SmoothCELoss2D(Loss):
+    """KL Divergence Loss with Smoothness Loss for 2D probability distributions."""
+
+    def _compute_tf_loss(self, output, labels):
+        # not correclty implemented yet. 
+        import tensorflow as tf
+        # Ensure shapes and types are consistent
+        output, labels = _make_tf_shapes_consistent(output, labels)
+        output, labels = _ensure_float(output, labels)
+
+        # Normalize outputs to form valid probability distributions
+        output = tf.nn.softplus(output)
+        output = output / tf.reduce_sum(output, axis=-1, keepdims=True)
+
+        # Compute KL divergence
+        kl_loss = tf.reduce_sum(labels * tf.math.log((labels + 1e-8) / (output + 1e-8)), axis=-1)
+        return kl_loss
+
+
+    def _create_pytorch_loss(self):
+        import torch
+
+        def loss(output, labels):
+            # Ensure shapes are consistent
+            output, labels = _make_pytorch_shapes_consistent(output, labels)
+
+            # Normalize outputs to form valid probability distributions
+            #output = torch.nn.functional.softplus(output)  # Ensure non-negative values
+            #output = output / output.sum(dim=[1], keepdim=True)  # Normalize across 2D binscd 
+
+            # Reshape labels
+            labels = labels.view(-1, 36, 36)
+            output = output.view(-1, 36, 36)
+
+            # Compute KL divergence over 2D grid
+            kl_loss = -torch.sum(labels * torch.log((output + 1e-8) ), dim=[1, 2])
+            
+            # Compute smoothness loss (difference between adjacent bins)
+            diff_x = torch.abs(output[:, 1:, :] - output[:, :-1, :])  # Difference along x-axis
+            diff_y = torch.abs(output[:, :, 1:] - output[:, :, :-1])  # Difference along y-axis
+            smooth_loss = torch.mean(diff_x) + torch.mean(diff_y)
+
+            # Combine KL divergence with smoothness regularization
+            total_loss = kl_loss.mean() + 0.1 * smooth_loss
+
+            # smooth loss as needed
+            return total_loss
+        
+        return loss
+
 class KLLoss(Loss):
     """KL Divergence Loss between the true and predicted probability distributions."""
 

@@ -1,21 +1,18 @@
-import torch
-import dgl
-import numpy as np
-from torch.utils.data import Dataset, DataLoader
+from deepchem.feat.molecule_featurizers import RDKitDescriptors
+from deepchem.feat.peptide_featurizers import PRDKitDescriptors
 import deepchem as dc
-import os
+import pandas as pd
+import numpy as np
+from rdkit.Chem import PandasTools
 
-os.chdir('/mnt/c/Users/schau/Documents/PerpetualMedicine/DeepChemModels')
+loader = dc.data.CSVLoader(
+        tasks=[ 'm_0', 'm_1',],
+        feature_field='3Smiles',
+        id_field='ID',
+        featurizer=PRDKitDescriptors()
+    )
 
-dataset = dc.data.DiskDataset( 'dc_datasets/allperm_dataset_gcn_rdkit/')
-splitter = dc.splits.RandomSplitter()
-# Splitting dataset into train and test datasets
-train_dataset, test_dataset = splitter.train_test_split(dataset)
-# Define the pipeline
 
-dc_model = dc.models.GCNRdkitModel(
-mode='regression', n_tasks=1,graph_conv_layers = [64,64],
-             batch_size=128, learning_rate=0.0001,
-)
-
-dc_model.fit(train_dataset, nb_epoch = 3,)
+train_csv ='/mnt/c/Users/schau/Documents/PerpetualMedicine/RamachandranPlots/RamachandranPlots/deepchem_test_dataset.csv'
+train_dataset_dir = '/mnt/c/Users/schau/Documents/PerpetualMedicine/RamachandranPlots/RamachandranPlots/deepchem_test101'
+train_dataset = loader.create_dataset(train_csv, data_dir=train_dataset_dir)

@@ -67,6 +67,11 @@ from deepchem.feat.complex_featurizers import PiStackVoxelizer
 from deepchem.feat.complex_featurizers import HydrogenBondVoxelizer
 from deepchem.feat.complex_featurizers import HydrogenBondCounter
 
+# peptide featurizers
+from deepchem.feat.peptide_featurizers import PRDKitDescriptors
+from deepchem.feat.peptide_featurizers import PCircularFingerprint
+
+
 # material featurizers
 from deepchem.feat.material_featurizers import ElementPropertyFingerprint
 from deepchem.feat.material_featurizers import SineCoulombMatrix

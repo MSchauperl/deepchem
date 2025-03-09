@@ -1,0 +1,2 @@
+from deepchem.feat.peptide_featurizers.prdkit_descriptors import PRDKitDescriptors
+from deepchem.feat.peptide_featurizers.pcircular_fingerprint import PCircularFingerprint
