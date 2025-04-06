@@ -179,19 +179,21 @@ class SmoothCELoss2D(Loss):
     """KL Divergence Loss with Smoothness Loss for 2D probability distributions."""
 
     def _compute_tf_loss(self, output, labels):
-        # not correclty implemented yet. 
-        import tensorflow as tf
-        # Ensure shapes and types are consistent
-        output, labels = _make_tf_shapes_consistent(output, labels)
-        output, labels = _ensure_float(output, labels)
-
-        # Normalize outputs to form valid probability distributions
-        output = tf.nn.softplus(output)
-        output = output / tf.reduce_sum(output, axis=-1, keepdims=True)
-
-        # Compute KL divergence
-        kl_loss = tf.reduce_sum(labels * tf.math.log((labels + 1e-8) / (output + 1e-8)), axis=-1)
-        return kl_loss
+        # Ensure shapes are consistent
+        labels = tf.reshape(labels, [-1, 36, 36])
+        output = tf.reshape(output, [-1, 36, 36])
+        
+        # Compute KL divergence over 2D grid
+        kl_loss = -tf.reduce_sum(labels * tf.math.log(output + 1e-8), axis=[1, 2])
+        
+        # Compute smoothness loss (difference between adjacent bins)
+        diff_x = tf.abs(output[:, 1:, :] - output[:, :-1, :])  # Difference along x-axis
+        diff_y = tf.abs(output[:, :, 1:] - output[:, :, :-1])  # Difference along y-axis
+        smooth_loss = tf.reduce_mean(diff_x) + tf.reduce_mean(diff_y)
+        
+        # Combine KL divergence with smoothness regularization
+        total_loss = tf.reduce_mean(kl_loss) + 0.1 * smooth_loss
+        
 
 
     def _create_pytorch_loss(self):

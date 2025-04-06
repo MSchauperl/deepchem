@@ -15,10 +15,12 @@ model = dc.models.ProbabilityRegressor(
     mode="regression"
     
 )
+
+
 sum_kld = dc.metrics.Metric(dc.metrics.kl_divergence, np.sum)
 
 # Train the model
-for i in range(50):
+for i in range(100):
     print(model.fit(train_dataset, nb_epoch=1))
     print(model.evaluate(train_dataset, metrics = [sum_kld],))
     predicted = model.predict(train_dataset)
