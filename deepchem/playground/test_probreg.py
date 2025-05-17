@@ -2,7 +2,7 @@ import deepchem as dc
 import numpy as np
 import pickle
 
-train_dataset = dc.data.DiskDataset('/mnt/c/Users/schau/Documents/PerpetualMedicine/RamachandranPlots/RamachandranPlots/ram_data_group/group_split_1/train_dataset_pcircularfingerprint/')
+train_dataset = dc.data.DiskDataset('/mnt/c/Users/schau/Documents/PerpetualMedicine/RamachandranPlots/RamachandranPlots/ram_data_group2/group_split_1/train_dataset_prdkitdescriptors/')
 
 # Define DeepChem's MultitaskRegressor
 model = dc.models.ProbabilityRegressor(

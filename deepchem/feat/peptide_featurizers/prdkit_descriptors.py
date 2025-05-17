@@ -57,7 +57,8 @@ class PRDKitDescriptors(ThreeMolecularFeaturizer):
                  use_fragment: bool = True,
                  ipc_avg: bool = True,
                  use_bcut2d: bool = True,
-                 labels_only: bool = False):
+                 labels_only: bool = False,
+                 problem_columns: bool = False):
         """Initialize this featurizer.
 
         Parameters
@@ -91,6 +92,7 @@ class PRDKitDescriptors(ThreeMolecularFeaturizer):
         self.use_fragment: bool = use_fragment
         self.use_bcut2d: bool = use_bcut2d
         self.is_normalized: bool = is_normalized
+        self.problem_columns: bool = problem_columns
         self.ipc_avg: bool = ipc_avg
         self.labels_only = labels_only
         self.reqd_properties = {}
@@ -105,6 +107,19 @@ class PRDKitDescriptors(ThreeMolecularFeaturizer):
                 if self.use_fragment is False and desc_name.startswith('fr_'):
                     continue
                 if self.use_bcut2d is False and desc_name.startswith('BCUT2D_'):
+                    continue
+                if self.problem_columns is False and desc_name in ['BCUT2D_CHGHI',
+ 'BCUT2D_CHGLO',
+ 'BCUT2D_LOGPHI',
+ 'BCUT2D_LOGPLOW',
+ 'BCUT2D_MRHI',
+ 'BCUT2D_MRLOW',
+ 'BCUT2D_MWHI',
+ 'BCUT2D_MWLOW',
+ 'MaxAbsPartialCharge',
+ 'MaxPartialCharge',
+ 'MinAbsPartialCharge',
+ 'MinPartialCharge']:
                     continue
                 self.reqd_properties[desc_name] = function
         else:
